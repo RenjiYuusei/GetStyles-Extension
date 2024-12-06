@@ -5,12 +5,7 @@
 	"description": "Get element styles element",
 	"permissions": ["activeTab", "clipboardWrite"],
 	"action": {
-		"default_title": "Get Styles",
-		"default_icon": {
-			"16": "icons/icon16.png",
-			"48": "icons/icon48.png",
-			"128": "icons/icon128.png"
-		}
+		"default_title": "Get Styles"
 	},
 	"background": {
 		"service_worker": "background.js"
@@ -20,10 +15,5 @@
 			"matches": ["<all_urls>"],
 			"js": ["content.js"]
 		}
-	],
-	"icons": {
-		"16": "icons/icon16.png",
-		"48": "icons/icon48.png",
-		"128": "icons/icon128.png"
-	}
+	]
 }
