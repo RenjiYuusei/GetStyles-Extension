@@ -1,9 +1,9 @@
 {
 	"manifest_version": 3,
 	"name": "Get Element Styles",
-	"version": "1.0",
-	"description": "Extract CSS styles from web elements with an intuitive interface",
-	"permissions": ["activeTab", "clipboardWrite"],
+	"version": "1.1",
+	"description": "Extract CSS styles from web elements with advanced features",
+	"permissions": ["activeTab", "clipboardWrite", "storage"],
 	"action": {
 		"default_title": "Click to start selecting elements"
 	},
