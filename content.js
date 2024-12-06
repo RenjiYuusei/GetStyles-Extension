@@ -1,14 +1,104 @@
 let isPickerActive = false;
 let hoveredElement = null;
 let highlightOverlay = null;
+let stylePanel = null;
 
-// Tạo overlay để highlight element
+// Create style panel UI
+const createStylePanel = () => {
+	const panel = document.createElement('div');
+	panel.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 300px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 999999;
+        font-family: Arial, sans-serif;
+        display: none;
+        overflow: hidden;
+    `;
+
+	// Panel header
+	const header = document.createElement('div');
+	header.style.cssText = `
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+	header.innerHTML = `
+        <span>Element Styles</span>
+        <button style="
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        ">×</button>
+    `;
+
+	// Panel content
+	const content = document.createElement('div');
+	content.style.cssText = `
+        padding: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+    `;
+
+	// Panel actions
+	const actions = document.createElement('div');
+	actions.style.cssText = `
+        padding: 12px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    `;
+
+	const copyButton = document.createElement('button');
+	copyButton.textContent = 'Copy Styles';
+	copyButton.style.cssText = `
+        padding: 6px 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s;
+    `;
+	copyButton.onmouseover = () => (copyButton.style.background = '#45a049');
+	copyButton.onmouseout = () => (copyButton.style.background = '#4CAF50');
+
+	actions.appendChild(copyButton);
+	panel.append(header, content, actions);
+	document.body.appendChild(panel);
+
+	// Event handlers
+	header.querySelector('button').onclick = () => {
+		panel.style.display = 'none';
+		deactivatePicker();
+	};
+
+	copyButton.onclick = async () => {
+		const styles = content.textContent;
+		await copyToClipboard(styles);
+	};
+
+	return { panel, content };
+};
+
+// Create highlight overlay for element selection
 const createHighlightOverlay = () => {
 	const overlay = document.createElement('div');
 	overlay.style.cssText = `
         position: fixed;
         pointer-events: none;
-        z-index: 999999;
+        z-index: 999998;
         border: 2px solid #4CAF50;
         background-color: rgba(76, 175, 80, 0.1);
         transition: all 0.2s ease;
@@ -16,7 +106,7 @@ const createHighlightOverlay = () => {
 	return overlay;
 };
 
-// Tạo element thông báo
+// Create notification element
 const createNotification = (type = 'success') => {
 	const notification = document.createElement('div');
 	const colors = {
@@ -42,24 +132,23 @@ const createNotification = (type = 'success') => {
 	return notification;
 };
 
-// Hàm copy vào clipboard với định dạng đẹp
+// Copy text to clipboard
 const copyToClipboard = async text => {
 	try {
 		await navigator.clipboard.writeText(text);
-		showNotification('Đã copy styles vào clipboard!');
+		showNotification('Styles copied to clipboard!');
 	} catch (err) {
-		showNotification('Không thể copy styles!', 'error');
-		console.error('Lỗi copy:', err);
+		showNotification('Failed to copy styles!', 'error');
+		console.error('Copy error:', err);
 	}
 };
 
-// Hiển thị thông báo
+// Show notification message
 const showNotification = (message, type = 'success') => {
 	const notification = createNotification(type);
 	notification.textContent = message;
 	document.body.appendChild(notification);
 
-	// Animation hiển thị
 	setTimeout(() => {
 		notification.style.opacity = '0';
 		notification.style.transform = 'translateY(20px)';
@@ -67,7 +156,7 @@ const showNotification = (message, type = 'success') => {
 	}, 2000);
 };
 
-// Format CSS properties thành chuỗi đẹp
+// Format CSS properties into readable string
 const formatCSSProperties = styles => {
 	const cssString = Object.entries(styles)
 		.filter(([key, value]) => value && value !== 'none' && value !== 'normal' && value !== 'auto')
@@ -77,7 +166,7 @@ const formatCSSProperties = styles => {
 	return `{\n${cssString}\n}`;
 };
 
-// Lấy tất cả styles quan trọng của element
+// Get computed styles of element
 const getElementStyles = element => {
 	const styles = window.getComputedStyle(element);
 	const importantStyles = {
@@ -93,11 +182,13 @@ const getElementStyles = element => {
 		bottom: styles.bottom,
 		left: styles.left,
 
-		// Visual
+		// Visual Properties
 		backgroundColor: styles.backgroundColor,
 		color: styles.color,
 		border: styles.border,
 		borderRadius: styles.borderRadius,
+		boxShadow: styles.boxShadow,
+		opacity: styles.opacity,
 
 		// Typography
 		fontSize: styles.fontSize,
@@ -107,14 +198,14 @@ const getElementStyles = element => {
 		textAlign: styles.textAlign,
 		letterSpacing: styles.letterSpacing,
 
-		// Flexbox
+		// Flexbox Properties
 		flexDirection: styles.flexDirection,
 		justifyContent: styles.justifyContent,
 		alignItems: styles.alignItems,
 		flexWrap: styles.flexWrap,
 		gap: styles.gap,
 
-		// Grid
+		// Grid Properties
 		gridTemplateColumns: styles.gridTemplateColumns,
 		gridTemplateRows: styles.gridTemplateRows,
 		gridGap: styles.gridGap,
@@ -124,24 +215,24 @@ const getElementStyles = element => {
 		transition: styles.transition,
 		animation: styles.animation,
 
-		// Other
+		// Miscellaneous
 		cursor: styles.cursor,
 		zIndex: styles.zIndex,
 		overflow: styles.overflow,
 		visibility: styles.visibility,
 	};
 
-	// Lọc bỏ các giá trị mặc định
+	// Filter out default values
 	return Object.fromEntries(Object.entries(importantStyles).filter(([_, value]) => value && value !== 'none' && value !== 'normal' && value !== 'auto' && value !== '0px' && value !== 'rgba(0, 0, 0, 0)'));
 };
 
-// Xử lý hover element
+// Handle element hover
 const handleElementHover = e => {
 	if (!isPickerActive) return;
 
 	hoveredElement = e.target;
 
-	// Cập nhật vị trí overlay
+	// Update overlay position
 	const rect = hoveredElement.getBoundingClientRect();
 	highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
 	highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
@@ -150,26 +241,34 @@ const handleElementHover = e => {
 	highlightOverlay.style.display = 'block';
 };
 
-// Khởi tạo picker
+// Initialize element picker
 const initializePicker = () => {
 	if (!highlightOverlay) {
 		highlightOverlay = createHighlightOverlay();
 		document.body.appendChild(highlightOverlay);
 	}
 
+	if (!stylePanel) {
+		const panel = createStylePanel();
+		stylePanel = panel.panel;
+		stylePanel.content = panel.content;
+	}
+
 	document.addEventListener('mousemove', handleElementHover);
-	showNotification('Click vào element để copy styles', 'info');
+	showNotification('Click on an element to get its styles', 'info');
 };
 
-// Hủy picker
+// Deactivate element picker
 const deactivatePicker = () => {
+	isPickerActive = false;
+	document.body.style.cursor = 'default';
 	document.removeEventListener('mousemove', handleElementHover);
 	if (highlightOverlay) {
 		highlightOverlay.style.display = 'none';
 	}
 };
 
-// Lắng nghe message từ background script
+// Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.action === 'togglePicker') {
 		isPickerActive = !isPickerActive;
@@ -183,7 +282,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-// Xử lý click vào element
+// Handle element click
 document.addEventListener('click', async e => {
 	if (!isPickerActive) return;
 
@@ -192,9 +291,10 @@ document.addEventListener('click', async e => {
 
 	const styles = getElementStyles(e.target);
 	const formattedCSS = formatCSSProperties(styles);
-	await copyToClipboard(formattedCSS);
 
-	isPickerActive = false;
-	document.body.style.cursor = 'default';
+	// Update and show style panel
+	stylePanel.content.textContent = formattedCSS;
+	stylePanel.style.display = 'block';
+
 	deactivatePicker();
 });

@@ -1,11 +1,12 @@
 {
 	"manifest_version": 3,
 	"name": "Get Element Styles",
-	"version": "1.1.1",
-	"description": "Tool to extract CSS styles from elements on the web with a visual interface",
+	"version": "1.0",
+	"description": "Extract CSS styles from web elements with an intuitive interface",
 	"permissions": ["activeTab", "clipboardWrite"],
 	"action": {
-		"default_title": "Click to select element"
+		"default_title": "Click to start selecting elements",
+		"default_popup": "background.html"
 	},
 	"background": {
 		"service_worker": "background.js"

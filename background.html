@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Get Element Styles</title>
+		<style>
+			body {
+				width: 300px;
+				padding: 16px;
+				font-family: Arial, sans-serif;
+				margin: 0;
+			}
+
+			.header {
+				text-align: center;
+				margin-bottom: 16px;
+				padding-bottom: 16px;
+				border-bottom: 1px solid #eee;
+			}
+
+			.header h1 {
+				margin: 0;
+				font-size: 18px;
+				color: #333;
+			}
+
+			.content {
+				margin-bottom: 16px;
+			}
+
+			.instructions {
+				background: #f5f5f5;
+				padding: 12px;
+				border-radius: 6px;
+				margin-bottom: 16px;
+			}
+
+			.instructions h2 {
+				margin: 0 0 8px 0;
+				font-size: 14px;
+				color: #666;
+			}
+
+			.instructions ol {
+				margin: 0;
+				padding-left: 20px;
+				font-size: 13px;
+				color: #555;
+			}
+
+			.instructions li {
+				margin-bottom: 6px;
+			}
+
+			.button {
+				display: block;
+				width: 100%;
+				padding: 10px;
+				background: #4caf50;
+				color: white;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 14px;
+				transition: background 0.3s;
+			}
+
+			.button:hover {
+				background: #45a049;
+			}
+
+			.button:active {
+				transform: scale(0.98);
+			}
+
+			.shortcuts {
+				margin-top: 16px;
+				font-size: 12px;
+				color: #666;
+				text-align: center;
+			}
+
+			.shortcuts kbd {
+				background: #f1f1f1;
+				padding: 2px 6px;
+				border-radius: 3px;
+				border: 1px solid #ccc;
+			}
+
+			.footer {
+				margin-top: 16px;
+				padding-top: 16px;
+				border-top: 1px solid #eee;
+				text-align: center;
+				font-size: 12px;
+				color: #999;
+			}
+
+			.theme-switch {
+				position: absolute;
+				top: 16px;
+				right: 16px;
+				cursor: pointer;
+				font-size: 20px;
+			}
+
+			/* Dark theme */
+			body.dark-theme {
+				background: #1a1a1a;
+				color: #fff;
+			}
+
+			.dark-theme .header {
+				border-bottom-color: #333;
+			}
+
+			.dark-theme .header h1 {
+				color: #fff;
+			}
+
+			.dark-theme .instructions {
+				background: #2d2d2d;
+			}
+
+			.dark-theme .instructions h2,
+			.dark-theme .instructions ol {
+				color: #ccc;
+			}
+
+			.dark-theme .button {
+				background: #45a049;
+			}
+
+			.dark-theme .button:hover {
+				background: #3d8b40;
+			}
+
+			.dark-theme .shortcuts kbd {
+				background: #333;
+				border-color: #444;
+				color: #fff;
+			}
+
+			.dark-theme .footer {
+				border-top-color: #333;
+				color: #666;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="theme-switch"></div>
+
+		<div class="header">
+			<h1>Get Element Styles</h1>
+		</div>
+
+		<div class="content">
+			<div class="instructions">
+				<h2>How to use:</h2>
+				<ol>
+					<li>Click the "Start Picker" button below</li>
+					<li>Hover over any element on the page</li>
+					<li>Click to select the element</li>
+					<li>View and copy the styles from the panel</li>
+				</ol>
+			</div>
+
+			<button id="startPicker" class="button">Start Picker</button>
+		</div>
+
+		<div class="shortcuts">Shortcut: Press <kbd>Alt</kbd> + <kbd>S</kbd> to toggle picker</div>
+
+		<div class="footer">Version 1.2.0 • Made with ❤️</div>
+
+		<script>
+			// Theme switcher
+			const themeSwitch = document.querySelector('.theme-switch');
+			const body = document.body;
+
+			// Load saved theme
+			const savedTheme = localStorage.getItem('theme');
+			if (savedTheme === 'dark') {
+				body.classList.add('dark-theme');
+			}
+
+			// Toggle theme
+			themeSwitch.addEventListener('click', () => {
+				body.classList.toggle('dark-theme');
+				localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
+			});
+
+			// Start picker button
+			document.getElementById('startPicker').addEventListener('click', () => {
+				chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+					chrome.tabs.sendMessage(tabs[0].id, { action: 'togglePicker' });
+					window.close();
+				});
+			});
+
+			// Keyboard shortcut
+			document.addEventListener('keydown', e => {
+				if (e.altKey && e.key.toLowerCase() === 's') {
+					chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+						chrome.tabs.sendMessage(tabs[0].id, { action: 'togglePicker' });
+						window.close();
+					});
+				}
+			});
+		</script>
+	</body>
+</html>
