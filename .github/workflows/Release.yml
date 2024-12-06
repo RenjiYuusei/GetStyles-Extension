@@ -1,0 +1,69 @@
+name: Build & Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (vd: v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          npm install chrome-webstore-upload-cli
+          
+      - name: Create extension files
+        run: |
+          # Tạo thư mục build
+          mkdir build
+          cp manifest.json build/
+          cp background.js build/
+          cp content.js build/
+          
+      - name: Create ZIP file
+        run: |
+          cd build
+          zip -r ../extension.zip *
+          cd ..
+          
+      - name: Generate .crx file
+        run: |
+          # Tạo private key nếu không có
+          if [ ! -f ./private.pem ]; then
+            openssl genrsa -out private.pem 2048
+          fi
+          
+          # Build file .crx
+          chromium-browser --pack-extension=./build --pack-extension-key=./private.pem
+          mv build.crx extension.crx
+        
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          files: |
+            extension.zip
+            extension.crx
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
