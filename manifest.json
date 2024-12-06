@@ -1,0 +1,19 @@
+{
+	"manifest_version": 3,
+	"name": "Get Element Styles",
+	"version": "1.0",
+	"description": "Lấy styles của element khi click",
+	"permissions": ["activeTab"],
+	"action": {
+		"default_title": "Get Styles"
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content.js"]
+		}
+	]
+}
