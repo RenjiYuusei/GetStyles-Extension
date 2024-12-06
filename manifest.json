@@ -5,7 +5,8 @@
 	"description": "Extract CSS styles from web elements with advanced features",
 	"permissions": ["activeTab", "clipboardWrite", "storage"],
 	"action": {
-		"default_title": "Click to start selecting elements"
+		"default_popup": "popup.html",
+		"default_title": "Get Element Styles"
 	},
 	"background": {
 		"service_worker": "background.js"
