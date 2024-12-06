@@ -171,42 +171,8 @@
 
 		<div class="shortcuts">Shortcut: Press <kbd>Alt</kbd> + <kbd>S</kbd> to toggle picker</div>
 
-		<div class="footer">Version 1.2.0 • Made with ❤️</div>
+		<div class="footer">Version 1.0 • Made with ❤️</div>
 
-		<script>
-			// Theme switcher
-			const themeSwitch = document.querySelector('.theme-switch');
-			const body = document.body;
-
-			// Load saved theme
-			const savedTheme = localStorage.getItem('theme');
-			if (savedTheme === 'dark') {
-				body.classList.add('dark-theme');
-			}
-
-			// Toggle theme
-			themeSwitch.addEventListener('click', () => {
-				body.classList.toggle('dark-theme');
-				localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
-			});
-
-			// Start picker button
-			document.getElementById('startPicker').addEventListener('click', () => {
-				chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-					chrome.tabs.sendMessage(tabs[0].id, { action: 'togglePicker' });
-					window.close();
-				});
-			});
-
-			// Keyboard shortcut
-			document.addEventListener('keydown', e => {
-				if (e.altKey && e.key.toLowerCase() === 's') {
-					chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-						chrome.tabs.sendMessage(tabs[0].id, { action: 'togglePicker' });
-						window.close();
-					});
-				}
-			});
-		</script>
+		<script src="popup.js"></script>
 	</body>
 </html>

@@ -6,7 +6,7 @@
 	"permissions": ["activeTab", "clipboardWrite"],
 	"action": {
 		"default_title": "Click to start selecting elements",
-		"default_popup": "background.html"
+		"default_popup": "popup.html"
 	},
 	"background": {
 		"service_worker": "background.js"
