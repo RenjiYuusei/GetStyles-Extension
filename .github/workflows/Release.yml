@@ -30,6 +30,20 @@ jobs:
                   sudo apt-get install -y chromium-browser
                   npm install chrome-webstore-upload-cli
 
+            - name: Set version
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+                  else
+                    echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+                  fi
+
+            - name: Update manifest version
+              run: |
+                  VERSION_NUMBER=$(echo $VERSION | sed 's/v//')
+                  jq ".version = \"$VERSION_NUMBER\"" manifest.json > manifest.json.tmp
+                  mv manifest.json.tmp manifest.json
+
             - name: Create extension files
               run: |
                   mkdir -p build
@@ -46,18 +60,16 @@ jobs:
                   if [ ! -f ./private.pem ]; then
                     openssl genrsa -out private.pem 2048
                   fi
-
                   chromium-browser --pack-extension=./build --pack-extension-key=./private.pem
                   mv build.crx extension.crx
 
             - name: Create Release
-              id: create_release
               uses: softprops/action-gh-release@v1
-              if: startsWith(github.ref, 'refs/tags/')
               with:
                   files: |
                       extension.zip
                       extension.crx
+                  tag_name: ${{ env.VERSION }}
                   draft: false
                   prerelease: false
                   generate_release_notes: true
