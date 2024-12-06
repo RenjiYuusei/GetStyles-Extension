@@ -3,76 +3,102 @@ let hoveredElement = null;
 let highlightOverlay = null;
 let stylePanel = null;
 
-// Create style panel UI
+// Create a modern style panel with enhanced UI
 const createStylePanel = () => {
 	const panel = document.createElement('div');
 	panel.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        width: 300px;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 350px;
+        background: #2d2d2d;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         z-index: 999999;
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Arial, sans-serif;
         display: none;
         overflow: hidden;
+        color: #ffffff;
+        border: 1px solid #404040;
     `;
 
-	// Panel header
+	// Enhanced panel header with modern design
 	const header = document.createElement('div');
 	header.style.cssText = `
-        padding: 12px;
-        background: #4CAF50;
-        color: white;
-        font-weight: bold;
+        padding: 15px;
+        background: #363636;
+        color: #ffffff;
+        font-weight: 600;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid #404040;
     `;
 	header.innerHTML = `
-        <span>Element Styles</span>
+        <span style="font-size: 16px;">🎨 Element Styles</span>
         <button style="
             background: none;
             border: none;
-            color: white;
+            color: #ffffff;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
+            padding: 0 5px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
         ">×</button>
     `;
 
-	// Panel content
+	// Improved content area with syntax highlighting-like styling
 	const content = document.createElement('div');
 	content.style.cssText = `
-        padding: 12px;
-        max-height: 400px;
+        padding: 15px;
+        max-height: 500px;
         overflow-y: auto;
+        font-family: 'Consolas', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #e6e6e6;
+        background: #2d2d2d;
     `;
 
-	// Panel actions
+	// Modern action buttons section
 	const actions = document.createElement('div');
 	actions.style.cssText = `
-        padding: 12px;
-        border-top: 1px solid #eee;
+        padding: 15px;
+        background: #363636;
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 10px;
+        border-top: 1px solid #404040;
     `;
 
+	// Enhanced copy button with hover effects
 	const copyButton = document.createElement('button');
-	copyButton.textContent = 'Copy Styles';
+	copyButton.textContent = '📋 Copy Styles';
 	copyButton.style.cssText = `
-        padding: 6px 12px;
+        padding: 8px 16px;
         background: #4CAF50;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
-        transition: background 0.3s;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     `;
-	copyButton.onmouseover = () => (copyButton.style.background = '#45a049');
-	copyButton.onmouseout = () => (copyButton.style.background = '#4CAF50');
+
+	// Hover effects for the copy button
+	copyButton.onmouseover = () => {
+		copyButton.style.background = '#45a049';
+		copyButton.style.transform = 'translateY(-1px)';
+	};
+	copyButton.onmouseout = () => {
+		copyButton.style.background = '#4CAF50';
+		copyButton.style.transform = 'translateY(0)';
+	};
 
 	actions.appendChild(copyButton);
 	panel.append(header, content, actions);
@@ -92,7 +118,7 @@ const createStylePanel = () => {
 	return { panel, content };
 };
 
-// Create highlight overlay for element selection
+// Create a smooth highlight overlay for element selection
 const createHighlightOverlay = () => {
 	const overlay = document.createElement('div');
 	overlay.style.cssText = `
@@ -102,11 +128,12 @@ const createHighlightOverlay = () => {
         border: 2px solid #4CAF50;
         background-color: rgba(76, 175, 80, 0.1);
         transition: all 0.2s ease;
+        border-radius: 4px;
     `;
 	return overlay;
 };
 
-// Create notification element
+// Enhanced notification system with animations
 const createNotification = (type = 'success') => {
 	const notification = document.createElement('div');
 	const colors = {
@@ -123,27 +150,36 @@ const createNotification = (type = 'success') => {
         color: white;
         padding: 12px 24px;
         border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         z-index: 999999;
         transition: all 0.3s ease;
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Arial, sans-serif;
         font-size: 14px;
+        transform: translateY(100px);
+        opacity: 0;
     `;
+
+	// Animate notification entrance
+	setTimeout(() => {
+		notification.style.transform = 'translateY(0)';
+		notification.style.opacity = '1';
+	}, 100);
+
 	return notification;
 };
 
-// Copy text to clipboard
+// Clipboard functionality with error handling
 const copyToClipboard = async text => {
 	try {
 		await navigator.clipboard.writeText(text);
-		showNotification('Styles copied to clipboard!');
+		showNotification('✨ Styles copied to clipboard!');
 	} catch (err) {
-		showNotification('Failed to copy styles!', 'error');
+		showNotification('❌ Failed to copy styles!', 'error');
 		console.error('Copy error:', err);
 	}
 };
 
-// Show notification message
+// Enhanced notification display system
 const showNotification = (message, type = 'success') => {
 	const notification = createNotification(type);
 	notification.textContent = message;
@@ -156,9 +192,10 @@ const showNotification = (message, type = 'success') => {
 	}, 2000);
 };
 
-// Format CSS properties into readable string
+// Format CSS properties with proper indentation and sorting
 const formatCSSProperties = styles => {
 	const cssString = Object.entries(styles)
+		.sort(([a], [b]) => a.localeCompare(b))
 		.filter(([key, value]) => value && value !== 'none' && value !== 'normal' && value !== 'auto')
 		.map(([key, value]) => `    ${key}: ${value};`)
 		.join('\n');
@@ -166,7 +203,7 @@ const formatCSSProperties = styles => {
 	return `{\n${cssString}\n}`;
 };
 
-// Get computed styles of element
+// Get computed styles with improved filtering
 const getElementStyles = element => {
 	const styles = window.getComputedStyle(element);
 	const importantStyles = {
@@ -222,17 +259,15 @@ const getElementStyles = element => {
 		visibility: styles.visibility,
 	};
 
-	// Filter out default values
 	return Object.fromEntries(Object.entries(importantStyles).filter(([_, value]) => value && value !== 'none' && value !== 'normal' && value !== 'auto' && value !== '0px' && value !== 'rgba(0, 0, 0, 0)'));
 };
 
-// Handle element hover
+// Handle element hover with smooth highlighting
 const handleElementHover = e => {
 	if (!isPickerActive) return;
 
 	hoveredElement = e.target;
 
-	// Update overlay position
 	const rect = hoveredElement.getBoundingClientRect();
 	highlightOverlay.style.top = `${rect.top + window.scrollY}px`;
 	highlightOverlay.style.left = `${rect.left + window.scrollX}px`;
@@ -241,7 +276,7 @@ const handleElementHover = e => {
 	highlightOverlay.style.display = 'block';
 };
 
-// Initialize element picker
+// Initialize the element picker with improved UI feedback
 const initializePicker = () => {
 	if (!highlightOverlay) {
 		highlightOverlay = createHighlightOverlay();
@@ -255,10 +290,10 @@ const initializePicker = () => {
 	}
 
 	document.addEventListener('mousemove', handleElementHover);
-	showNotification('Click on an element to get its styles', 'info');
+	showNotification('🎯 Click on any element to get its styles', 'info');
 };
 
-// Deactivate element picker
+// Deactivate picker with cleanup
 const deactivatePicker = () => {
 	isPickerActive = false;
 	document.body.style.cursor = 'default';
@@ -268,7 +303,7 @@ const deactivatePicker = () => {
 	}
 };
 
-// Listen for messages from background script
+// Message listener for extension communication
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.action === 'togglePicker') {
 		isPickerActive = !isPickerActive;
@@ -282,7 +317,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-// Handle element click
+// Handle element selection
 document.addEventListener('click', async e => {
 	if (!isPickerActive) return;
 
@@ -292,7 +327,6 @@ document.addEventListener('click', async e => {
 	const styles = getElementStyles(e.target);
 	const formattedCSS = formatCSSProperties(styles);
 
-	// Update and show style panel
 	stylePanel.content.textContent = formattedCSS;
 	stylePanel.style.display = 'block';
 

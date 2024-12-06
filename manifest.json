@@ -5,8 +5,7 @@
 	"description": "Extract CSS styles from web elements with an intuitive interface",
 	"permissions": ["activeTab", "clipboardWrite"],
 	"action": {
-		"default_title": "Click to start selecting elements",
-		"default_popup": "popup.html"
+		"default_title": "Click to start selecting elements"
 	},
 	"background": {
 		"service_worker": "background.js"
@@ -16,5 +15,13 @@
 			"matches": ["<all_urls>"],
 			"js": ["content.js"]
 		}
-	]
+	],
+	"commands": {
+		"toggle-picker": {
+			"suggested_key": {
+				"default": "Alt+S"
+			},
+			"description": "Toggle element picker"
+		}
+	}
 }
