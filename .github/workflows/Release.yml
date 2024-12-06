@@ -24,12 +24,6 @@ jobs:
               with:
                   node-version: '16'
 
-            - name: Install dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y chromium-browser
-                  npm install chrome-webstore-upload-cli
-
             - name: Set version
               run: |
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -55,20 +49,11 @@ jobs:
                   zip -r ../extension.zip *
                   cd ..
 
-            - name: Generate .crx file
-              run: |
-                  if [ ! -f ./private.pem ]; then
-                    openssl genrsa -out private.pem 2048
-                  fi
-                  chromium-browser --pack-extension=./build --pack-extension-key=./private.pem
-                  mv build.crx extension.crx
-
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
                   files: |
                       extension.zip
-                      extension.crx
                   tag_name: ${{ env.VERSION }}
                   draft: false
                   prerelease: false
