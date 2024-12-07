@@ -1,0 +1,29 @@
+{
+	"name": "getstyles-extension",
+	"version": "1.1.0",
+	"description": "Extract CSS styles from web elements with advanced features",
+	"scripts": {
+		"lint": "eslint .",
+		"build": "mkdir -p build && cp manifest.json background.js content.js popup.html popup.js build/ && cp -r icons build/",
+		"zip": "cd build && zip -r ../extension.zip *"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RenjiYuusei/GetStyles-Extension.git"
+	},
+	"keywords": [
+		"chrome-extension",
+		"css",
+		"styles",
+		"developer-tools"
+	],
+	"author": "RenjiYuusei",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/RenjiYuusei/GetStyles-Extension/issues"
+	},
+	"homepage": "https://github.com/RenjiYuusei/GetStyles-Extension#readme",
+	"devDependencies": {
+		"eslint": "^8.56.0"
+	}
+}
