@@ -3,28 +3,30 @@ let hoveredElement = null;
 let highlightOverlay = null;
 let stylePanel = null;
 
-// Create a modern style panel with enhanced UI and features
 const createStylePanel = () => {
 	const panel = document.createElement('div');
 	panel.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        width: 400px;
-        background: rgba(28, 28, 28, 0.98);
-        backdrop-filter: blur(12px);
+        width: 380px;
+        max-width: calc(100vw - 40px); 
+        background: rgba(28, 28, 28, 0.95);
+        backdrop-filter: blur(10px);
         border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        z-index: 999999;
-        font-family: 'SF Pro Display', 'Inter', sans-serif;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        z-index: 2147483647;
+        font-family: system-ui, -apple-system, sans-serif;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
-        max-height: 90vh;
+        max-height: calc(100vh - 40px);
+        pointer-events: all;
     `;
 
-	// Create header with title and controls
+	panel.className = 'getstyles-extension-panel';
+
 	const header = document.createElement('div');
 	header.style.cssText = `
         padding: 16px;
@@ -47,7 +49,6 @@ const createStylePanel = () => {
         </div>
     `;
 
-	// Add toolbar with actions
 	const toolbar = document.createElement('div');
 	toolbar.style.cssText = `
         padding: 12px 16px;
@@ -58,7 +59,6 @@ const createStylePanel = () => {
         flex-shrink: 0;
     `;
 
-	// Add format selection
 	const formatSelect = document.createElement('select');
 	formatSelect.style.cssText = `
         padding: 6px 12px;
@@ -76,7 +76,6 @@ const createStylePanel = () => {
 	});
 	toolbar.appendChild(formatSelect);
 
-	// Add search input
 	const searchInput = document.createElement('input');
 	searchInput.type = 'text';
 	searchInput.placeholder = 'Search styles...';
@@ -91,7 +90,6 @@ const createStylePanel = () => {
     `;
 	toolbar.appendChild(searchInput);
 
-	// Create content wrapper for scrolling
 	const contentWrapper = document.createElement('div');
 	contentWrapper.style.cssText = `
         flex: 1;
@@ -100,18 +98,20 @@ const createStylePanel = () => {
         max-height: calc(90vh - 200px);
     `;
 
-	// Create styles content area
 	const content = document.createElement('div');
 	content.style.cssText = `
         padding: 16px;
         color: #e6e6e6;
-        font-family: 'Fira Code', monospace;
+        font-family: 'Fira Code', Consolas, monospace;
         font-size: 13px;
         line-height: 1.6;
+        overflow-y: auto;
+        max-height: calc(90vh - 180px);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     `;
 	contentWrapper.appendChild(content);
 
-	// Create fixed bottom actions bar
 	const actions = document.createElement('div');
 	actions.style.cssText = `
         padding: 12px 16px;
@@ -124,7 +124,6 @@ const createStylePanel = () => {
         flex-shrink: 0;
     `;
 
-	// Add action buttons
 	const createActionButton = (icon, text, primary = false) => {
 		const button = document.createElement('button');
 		button.className = 'action-btn';
@@ -145,7 +144,6 @@ const createStylePanel = () => {
 		return button;
 	};
 
-	// Copy button with icon
 	const copyButton = createActionButton(
 		`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,7 +155,6 @@ const createStylePanel = () => {
 		true
 	);
 
-	// Download button
 	const downloadButton = createActionButton(
 		`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -171,7 +168,6 @@ const createStylePanel = () => {
 
 	actions.append(downloadButton, copyButton);
 
-	// Add styles
 	const style = document.createElement('style');
 	style.textContent = `
         .control-btn {
@@ -201,7 +197,7 @@ const createStylePanel = () => {
         .code-line:hover {
             background: rgba(255, 255, 255, 0.05);
         }
-        /* Custom scrollbar */
+       
         *::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -219,10 +215,28 @@ const createStylePanel = () => {
     `;
 	document.head.appendChild(style);
 
+	const pickAgainButton = document.createElement('button');
+	pickAgainButton.style.cssText = `
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    `;
+	pickAgainButton.textContent = '🎯 Pick Again';
+	pickAgainButton.onclick = () => {
+		panel.style.display = 'none';
+		isPickerActive = true;
+		initializePicker();
+		showNotification('🎯 Element picker activated!', 'info');
+	};
+	toolbar.appendChild(pickAgainButton);
+
 	panel.append(header, toolbar, contentWrapper, actions);
 	document.body.appendChild(panel);
 
-	// Add event listeners
 	let isMinimized = false;
 	header.querySelector('[title="Minimize"]').onclick = () => {
 		isMinimized = !isMinimized;
@@ -236,7 +250,6 @@ const createStylePanel = () => {
 		deactivatePicker();
 	};
 
-	// Format and copy styles based on selected format
 	const formatStyles = (styles, format) => {
 		switch (format) {
 			case 'scss':
@@ -249,7 +262,7 @@ const createStylePanel = () => {
 					.join('\n');
 			case 'json':
 				return JSON.stringify(styles, null, 2);
-			default: // css
+			default:
 				return Object.entries(styles)
 					.map(([prop, value]) => `${prop}: ${value};`)
 					.join('\n');
@@ -288,7 +301,6 @@ const createStylePanel = () => {
 	return { panel, content };
 };
 
-// Helper function to extract styles from content
 const getComputedStylesFromContent = content => {
 	const styles = {};
 	content.querySelectorAll('.code-line').forEach(line => {
@@ -300,22 +312,20 @@ const getComputedStylesFromContent = content => {
 	return styles;
 };
 
-// Enhanced element selection with smooth highlighting
 const createHighlightOverlay = () => {
 	const overlay = document.createElement('div');
 	overlay.style.cssText = `
         position: fixed;
         pointer-events: none;
-        z-index: 999998;
+        z-index: 2147483646;
         border: 2px solid #4CAF50;
         background-color: rgba(76, 175, 80, 0.1);
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 4px;
-        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
-        backdrop-filter: blur(2px);
+        border-radius: 3px;
+        box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3);
+        mix-blend-mode: multiply;
     `;
 
-	// Add dimension tooltip
 	const tooltip = document.createElement('div');
 	tooltip.style.cssText = `
         position: fixed;
@@ -330,7 +340,6 @@ const createHighlightOverlay = () => {
     `;
 	document.body.appendChild(tooltip);
 
-	// Add selection guides
 	const guides = {
 		horizontal: document.createElement('div'),
 		vertical: document.createElement('div'),
@@ -353,7 +362,6 @@ const createHighlightOverlay = () => {
 	return { overlay, tooltip, guides };
 };
 
-// Enhanced element hover tracking
 const handleElementHover = e => {
 	if (!isPickerActive) return;
 
@@ -363,7 +371,6 @@ const handleElementHover = e => {
 		const scrollX = window.scrollX;
 		const scrollY = window.scrollY;
 
-		// Update overlay with smooth tracking
 		const overlay = highlightOverlay.overlay;
 		overlay.style.transform = 'scale(1)';
 		overlay.style.transition = 'all 0.1s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -373,7 +380,6 @@ const handleElementHover = e => {
 		overlay.style.height = `${rect.height}px`;
 		overlay.style.display = 'block';
 
-		// Update dimensions tooltip
 		if (settings.showDimensions) {
 			const tooltip = highlightOverlay.tooltip;
 			const tagName = hoveredElement.tagName.toLowerCase();
@@ -386,7 +392,6 @@ const handleElementHover = e => {
 			tooltip.style.display = 'block';
 		}
 
-		// Update guide lines
 		if (settings.showGuides) {
 			const { guides } = highlightOverlay;
 			guides.horizontal.style.top = `${rect.top + scrollY + rect.height / 2}px`;
@@ -400,7 +405,6 @@ const handleElementHover = e => {
 	});
 };
 
-// Initialize picker with enhanced UI feedback
 const initializePicker = () => {
 	if (!highlightOverlay) {
 		highlightOverlay = createHighlightOverlay();
@@ -416,11 +420,9 @@ const initializePicker = () => {
 	document.addEventListener('mousemove', handleElementHover);
 	document.addEventListener('keydown', handleKeyPress);
 
-	// Add visual feedback for picker activation
 	showNotification('🎯 Press ESC to cancel selection', 'info');
 	document.body.style.cursor = 'crosshair';
 
-	// Add hover effect to all elements
 	const style = document.createElement('style');
 	style.textContent = `
         *:hover {
@@ -431,7 +433,6 @@ const initializePicker = () => {
 	highlightOverlay.styleElement = style;
 };
 
-// Handle keyboard shortcuts
 const handleKeyPress = e => {
 	if (!isPickerActive) return;
 
@@ -441,8 +442,7 @@ const handleKeyPress = e => {
 	}
 };
 
-// Improved deactivation cleanup
-const deactivatePicker = () => {
+const deactivatePicker = (hidePanel = true) => {
 	isPickerActive = false;
 	document.body.style.cursor = 'default';
 	document.removeEventListener('mousemove', handleElementHover);
@@ -455,9 +455,12 @@ const deactivatePicker = () => {
 		highlightOverlay.guides.vertical.style.display = 'none';
 		highlightOverlay.styleElement?.remove();
 	}
+
+	if (hidePanel && stylePanel) {
+		stylePanel.style.display = 'none';
+	}
 };
 
-// Enhanced element selection handler
 document.addEventListener('click', async e => {
 	if (!isPickerActive) return;
 
@@ -470,72 +473,36 @@ document.addEventListener('click', async e => {
 	stylePanel.content.innerHTML = formattedCSS;
 	stylePanel.style.display = 'block';
 
-	// Add selection animation
-	const flash = document.createElement('div');
-	flash.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(76, 175, 80, 0.1);
-        pointer-events: none;
-        z-index: 999996;
-        animation: flash 0.5s ease-out forwards;
-    `;
-	document.body.appendChild(flash);
-	setTimeout(() => flash.remove(), 500);
-
-	// Add animation keyframes
-	const style = document.createElement('style');
-	style.textContent = `
-        @keyframes flash {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    `;
-	document.head.appendChild(style);
-
-	deactivatePicker();
+	deactivatePicker(false);
 	showNotification('✨ Element styles captured!', 'success');
 });
 
-// Enhanced notification system with animations
 const createNotification = (type = 'success') => {
 	const notification = document.createElement('div');
-	const colors = {
-		success: '#4CAF50',
-		error: '#f44336',
-		info: '#2196F3',
-	};
-
 	notification.style.cssText = `
         position: fixed;
         bottom: 20px;
-        right: 20px;
-        background: ${colors[type]};
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
         color: white;
         padding: 12px 24px;
         border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 999999;
-        transition: all 0.3s ease;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 2147483647;
+        font-family: system-ui, -apple-system, sans-serif;
         font-size: 14px;
-        transform: translateY(100px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         opacity: 0;
     `;
 
-	// Animate notification entrance
 	setTimeout(() => {
-		notification.style.transform = 'translateY(0)';
 		notification.style.opacity = '1';
 	}, 100);
 
 	return notification;
 };
 
-// Clipboard functionality with error handling
 const copyToClipboard = async text => {
 	try {
 		await navigator.clipboard.writeText(text);
@@ -546,7 +513,6 @@ const copyToClipboard = async text => {
 	}
 };
 
-// Enhanced notification display system
 const showNotification = (message, type = 'success') => {
 	if (!message) return;
 
@@ -571,7 +537,6 @@ const showNotification = (message, type = 'success') => {
 	}
 };
 
-// Format CSS properties with syntax highlighting
 const formatCSSProperties = styles => {
 	return Object.entries(styles)
 		.sort(([a], [b]) => a.localeCompare(b))
@@ -587,14 +552,12 @@ const formatCSSProperties = styles => {
 		.join('');
 };
 
-// Get computed styles with improved filtering
 const getElementStyles = element => {
 	if (!element) return {};
 
 	try {
 		const styles = window.getComputedStyle(element);
 		const importantStyles = {
-			// Layout & Box Model
 			width: styles.width,
 			height: styles.height,
 			padding: styles.padding,
@@ -606,7 +569,6 @@ const getElementStyles = element => {
 			bottom: styles.bottom,
 			left: styles.left,
 
-			// Visual Properties
 			backgroundColor: styles.backgroundColor,
 			color: styles.color,
 			border: styles.border,
@@ -614,7 +576,6 @@ const getElementStyles = element => {
 			boxShadow: styles.boxShadow,
 			opacity: styles.opacity,
 
-			// Typography
 			fontSize: styles.fontSize,
 			fontFamily: styles.fontFamily,
 			fontWeight: styles.fontWeight,
@@ -622,24 +583,20 @@ const getElementStyles = element => {
 			textAlign: styles.textAlign,
 			letterSpacing: styles.letterSpacing,
 
-			// Flexbox Properties
 			flexDirection: styles.flexDirection,
 			justifyContent: styles.justifyContent,
 			alignItems: styles.alignItems,
 			flexWrap: styles.flexWrap,
 			gap: styles.gap,
 
-			// Grid Properties
 			gridTemplateColumns: styles.gridTemplateColumns,
 			gridTemplateRows: styles.gridTemplateRows,
 			gridGap: styles.gridGap,
 
-			// Transform & Animation
 			transform: styles.transform,
 			transition: styles.transition,
 			animation: styles.animation,
 
-			// Miscellaneous
 			cursor: styles.cursor,
 			zIndex: styles.zIndex,
 			overflow: styles.overflow,
@@ -653,7 +610,6 @@ const getElementStyles = element => {
 	}
 };
 
-// Message listener for extension communication
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.action === 'togglePicker') {
 		isPickerActive = !isPickerActive;
@@ -667,7 +623,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-// add filter styles
 const filterStyles = (styles, filter) => {
 	const categories = {
 		layout: ['width', 'height', 'padding', 'margin', 'display', 'position'],
@@ -680,7 +635,6 @@ const filterStyles = (styles, filter) => {
 	return Object.fromEntries(Object.entries(styles).filter(([key]) => categories[filter].some(cat => key.toLowerCase().includes(cat))));
 };
 
-// add search bar
 const addSearchBar = panel => {
 	const searchBar = document.createElement('input');
 	searchBar.type = 'text';
@@ -716,7 +670,6 @@ const exportStyles = styles => {
 	return formats;
 };
 
-// add export buttons
 const addExportButtons = (panel, styles) => {
 	const exportFormats = ['CSS', 'SCSS', 'JSON'];
 	const exportContainer = document.createElement('div');
@@ -741,13 +694,11 @@ const addExportButtons = (panel, styles) => {
 	return exportContainer;
 };
 
-// Load settings
 let settings = { showDimensions: true, showGuides: true };
 chrome.storage.sync.get(['settings'], result => {
 	settings = result.settings || settings;
 });
 
-// Thêm hàm mới để lấy tên class an toàn
 const getSafeClassName = element => {
 	if (!element) return '';
 	if (element.classList && element.classList.length > 0) {

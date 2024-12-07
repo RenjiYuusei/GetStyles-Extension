@@ -2,7 +2,6 @@ chrome.action.onClicked.addListener(tab => {
 	chrome.tabs.sendMessage(tab.id, { action: 'togglePicker' });
 });
 
-// Thêm phím tắt Alt+S
 chrome.commands.onCommand.addListener(command => {
 	if (command === 'toggle-picker') {
 		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {

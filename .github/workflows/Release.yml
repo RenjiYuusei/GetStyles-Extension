@@ -24,6 +24,10 @@ jobs:
               with:
                   node-version: '16'
 
+            - name: Install dependencies
+              run: |
+                  npm install
+
             - name: Set version
               run: |
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -38,10 +42,19 @@ jobs:
                   jq ".version = \"$VERSION_NUMBER\"" manifest.json > manifest.json.tmp
                   mv manifest.json.tmp manifest.json
 
+            - name: Run linting
+              run: |
+                  if [ -f "package.json" ]; then
+                    npm run lint
+                  fi
+
             - name: Create extension files
               run: |
                   mkdir -p build
-                  cp manifest.json background.js content.js build/
+                  cp manifest.json background.js content.js popup.html popup.js build/
+                  if [ -d "icons" ]; then
+                    cp -r icons build/
+                  fi
 
             - name: Create ZIP file
               run: |
